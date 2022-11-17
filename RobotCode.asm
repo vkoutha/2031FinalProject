@@ -63,20 +63,20 @@ WaitForUser:
 ;***************************************************************
 Main: ; "Real" program starts here.
 	OUT		RESETPOS    ; reset odometer in case wheels moved after programming	
-	LOADI 4
+	LOADI 60
 	STORE L2X
-	LOADI 7
+	LOADI 60
 	STORE L2Y
 	CALL L2Estimate
 	OUT SSEG1
 	OUT SSEG2
-	LOAD	TwoFeet
-	LOAD 	FSlow
-	LOAD TwoFeetInches
-	STORE MoveDistanceAmt
-	Load FSlow
-	STORE MoveDistanceSpeed
-	CALL MoveDistance
+	;LOAD	TwoFeet
+	;LOAD 	FSlow
+	;LOAD TwoFeetInches
+	;STORE MoveDistanceAmt
+	;Load FSlow
+	;STORE MoveDistanceSpeed
+	;CALL MoveDistance
 	CALL Die
 
 MoveDistance:
