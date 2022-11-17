@@ -72,6 +72,11 @@ Main: ; "Real" program starts here.
 	CALL MoveDistance
 	CALL Die
 
+;/******************************************************************
+; MoveDistance Subroutine
+; Moves a distance specified by the global variable MoveDistanceAmt (in inches) at a speed specified by MoveDistanceSpeed (robot units / sec)
+; MoveDistanceAmt is converted within the subroutine to RobotUnits by the InchesToRobotUnits subroutine, so there is no need for any manual conversions
+;/******************************************************************
 MoveDistance:
 	ConvertedUnits: DW 0
 	LOAD MoveDistanceAmt
@@ -96,6 +101,9 @@ MoveDistanceSpeed: DW 0 ; Speed to move at for MoveDistance subroutine
 
 ;****************************************************
 ; Subroutine which converts inches (stored in AC) to robot units and stores the result in AC
+; This approximates the conversion between inches to robot units; The proper conversion is (Inches = RobotUnits * 1.05 / 25.4),
+; but there is no Floating Point Unit (FPU) to make do this floating point arithmetic, so the formula is approximated to
+; Inches = RobotUnits / 25
 ;****************************************************
 InchesToRobotUnits:
 	STORE m16sA
