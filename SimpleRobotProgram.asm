@@ -83,6 +83,20 @@ Turn90:
 	SUB Deg270
 	JPOS Turn90
 
+MoveDistanceAMT: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
+MoveSpeedAMT: DW 0
+MoveDistance:
+	LOAD MoveDistanceAMT
+	OUT LVELCMD
+	OUT RVELCMD
+	ConvertedUnits: DW 0
+	
+	IN XPos
+
+
+	
+	
+
 	
 
 Die:
