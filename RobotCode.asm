@@ -63,7 +63,7 @@ WaitForUser:
 ;***************************************************************
 Main: ; "Real" program starts here.
 	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
-	CALL 	
+		
 
 
 MoveDistanceAMT: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
