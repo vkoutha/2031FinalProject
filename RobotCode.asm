@@ -63,36 +63,37 @@ WaitForUser:
 ;***************************************************************
 Main: ; "Real" program starts here.
 	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
-	
-MoveFourFeet:
-	LOAD FMid
-	OUT LVELCMD
-	OUT RVELCMD
-	IN XPos
-	SUB Four
-	JNEG MoveFourFeet
-	OUT LEDS
-	
-Turn90:
-	LOAD FMid
-	OUT LVELCMD
-	LOAD RMid
-	OUT RVELCMD
-	IN THETA
-	OUT SSEG2
-	SUB Deg270
-	JPOS Turn90
+	CALL 	
+
 
 MoveDistanceAMT: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
 MoveSpeedAMT: DW 0
 MoveDistance:
+	ConvertedUnits: DW 0
 	LOAD MoveDistanceAMT
+	CALL InchesToRobotUnits ; Convert MoveDistanceAMT from inches to robot units
+	STORE ConvertedUnits ; Store the target distance (robot units) in ConvertedUnits field
+MoveDistanceSetSpeed:	
+	LOAD FSlow
 	OUT LVELCMD
 	OUT RVELCMD
-	ConvertedUnits: DW 0
-	
 	IN XPos
+	SUB ConvertedUnits
+	JNEG MoveDistanceSetSpeed
+	RETURN	
 
+	
+;****************************************************
+; Subroutine which converts inches (stored in AC) to robot units and stores the result in AC
+;****************************************************
+InchesToRobotUnits:
+	STORE m16SsA
+	LOAD Zero
+	ADDI 25
+	STORE m16sB
+	CALL Mult16s
+	LOAD mres16sL
+	RETURN
 
 Die:
 ; Sometimes it's useful to permanently stop execution.
@@ -216,10 +217,6 @@ ADD    INDX
 STORE  Ptr 
 ILOAD  Ptr 
 STORE  output  	
-
-
-
-
 
 ;******************************************************************************;
 ; Atan2: 4-quadrant arctangent calculation                                     ;

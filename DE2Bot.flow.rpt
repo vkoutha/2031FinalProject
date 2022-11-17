@@ -1,5 +1,5 @@
 Flow report for DE2Bot
-Thu Nov 10 12:21:08 2022
+Thu Nov 17 10:15:36 2022
 Quartus II Version 9.1 Build 350 03/24/2010 Service Pack 2 SJ Web Edition
 
 
@@ -38,7 +38,7 @@ applicable agreement for further details.
 +-----------------------------------------------------------------------------------+
 ; Flow Summary                                                                      ;
 +------------------------------------+----------------------------------------------+
-; Flow Status                        ; Successful - Thu Nov 10 12:21:08 2022        ;
+; Flow Status                        ; Successful - Thu Nov 17 10:15:36 2022        ;
 ; Quartus II Version                 ; 9.1 Build 350 03/24/2010 SP 2 SJ Web Edition ;
 ; Revision Name                      ; DE2Bot                                       ;
 ; Top-level Entity Name              ; DE2bot                                       ;
@@ -63,29 +63,29 @@ applicable agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 11/10/2022 10:46:31 ;
+; Start date & time ; 11/17/2022 10:13:48 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; DE2Bot              ;
 +-------------------+---------------------+
 
 
-+------------------------------------------------------------------------------------------------------------------+
-; Flow Non-Default Global Settings                                                                                 ;
-+-------------------------------------+-----------------------------+---------------+-------------+----------------+
-; Assignment Name                     ; Value                       ; Default Value ; Entity Name ; Section Id     ;
-+-------------------------------------+-----------------------------+---------------+-------------+----------------+
-; COMPILER_SIGNATURE_ID               ; 91755410686.166807359128840 ; --            ; --          ; --             ;
-; ENABLE_CLOCK_LATENCY                ; On                          ; Off           ; --          ; --             ;
-; MAX_CORE_JUNCTION_TEMP              ; 85                          ; --            ; --          ; --             ;
-; MIN_CORE_JUNCTION_TEMP              ; 0                           ; --            ; --          ; --             ;
-; OUTPUT_PIN_LOAD                     ; 1                           ; --            ; --          ; 3.3-V LVTTL    ;
-; OUTPUT_PIN_LOAD                     ; 1                           ; --            ; --          ; 3.3-V LVCMOS   ;
-; PARTITION_COLOR                     ; 16764057                    ; --            ; DE2bot      ; Top            ;
-; PARTITION_FITTER_PRESERVATION_LEVEL ; PLACEMENT_AND_ROUTING       ; --            ; DE2bot      ; Top            ;
-; PARTITION_NETLIST_TYPE              ; SOURCE                      ; --            ; DE2bot      ; Top            ;
-; SMART_RECOMPILE                     ; On                          ; Off           ; --          ; --             ;
-; USE_GENERATED_PHYSICAL_CONSTRAINTS  ; Off                         ; --            ; --          ; eda_blast_fpga ;
-+-------------------------------------+-----------------------------+---------------+-------------+----------------+
++---------------------------------------------------------------------------------------------------------------------+
+; Flow Non-Default Global Settings                                                                                    ;
++-------------------------------------+--------------------------------+---------------+-------------+----------------+
+; Assignment Name                     ; Value                          ; Default Value ; Entity Name ; Section Id     ;
++-------------------------------------+--------------------------------+---------------+-------------+----------------+
+; COMPILER_SIGNATURE_ID               ; 62657541715184.166867642748868 ; --            ; --          ; --             ;
+; ENABLE_CLOCK_LATENCY                ; On                             ; Off           ; --          ; --             ;
+; MAX_CORE_JUNCTION_TEMP              ; 85                             ; --            ; --          ; --             ;
+; MIN_CORE_JUNCTION_TEMP              ; 0                              ; --            ; --          ; --             ;
+; OUTPUT_PIN_LOAD                     ; 1                              ; --            ; --          ; 3.3-V LVTTL    ;
+; OUTPUT_PIN_LOAD                     ; 1                              ; --            ; --          ; 3.3-V LVCMOS   ;
+; PARTITION_COLOR                     ; 16764057                       ; --            ; DE2bot      ; Top            ;
+; PARTITION_FITTER_PRESERVATION_LEVEL ; PLACEMENT_AND_ROUTING          ; --            ; DE2bot      ; Top            ;
+; PARTITION_NETLIST_TYPE              ; SOURCE                         ; --            ; DE2bot      ; Top            ;
+; SMART_RECOMPILE                     ; On                             ; Off           ; --          ; --             ;
+; USE_GENERATED_PHYSICAL_CONSTRAINTS  ; Off                            ; --            ; --          ; eda_blast_fpga ;
++-------------------------------------+--------------------------------+---------------+-------------+----------------+
 
 
 +-----------------------------------------------------------------------------------------------------------------------------+
@@ -93,39 +93,11 @@ applicable agreement for further details.
 +-------------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name             ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +-------------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis    ; 00:01:10     ; 1.0                     ; 296 MB              ; 00:00:39                           ;
-; Fitter                  ; 00:01:12     ; 1.0                     ; 326 MB              ; 00:00:55                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:02                           ;
-; Classic Timing Analyzer ; 00:00:03     ; 1.0                     ; 213 MB              ; 00:00:04                           ;
-; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 253 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 282 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:02                           ;
-; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 251 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:02                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:02                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:03     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 282 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:05     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; MIF/HEX Update          ; 00:00:02     ; 1.0                     ; 252 MB              ; 00:00:01                           ;
-; Assembler               ; 00:00:04     ; 1.0                     ; 283 MB              ; 00:00:03                           ;
-; Total                   ; 00:03:50     ; --                      ; --                  ; 00:02:33                           ;
+; Analysis & Synthesis    ; 00:00:47     ; 1.0                     ; 301 MB              ; 00:00:35                           ;
+; Fitter                  ; 00:00:56     ; 1.0                     ; 325 MB              ; 00:00:51                           ;
+; Assembler               ; 00:00:01     ; 1.0                     ; 281 MB              ; 00:00:01                           ;
+; Classic Timing Analyzer ; 00:00:01     ; 1.0                     ; 212 MB              ; 00:00:01                           ;
+; Total                   ; 00:01:45     ; --                      ; --                  ; 00:01:28                           ;
 +-------------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
@@ -138,34 +110,6 @@ applicable agreement for further details.
 ; Fitter                  ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
 ; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
 ; Classic Timing Analyzer ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; MIF/HEX Update          ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
-; Assembler               ; vkoutha          ; Windows Vista ; 6.2        ; x86_64         ;
 +-------------------------+------------------+---------------+------------+----------------+
 
 
@@ -176,34 +120,6 @@ quartus_map --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
 quartus_fit --read_settings_files=off --write_settings_files=off DE2Bot -c DE2Bot
 quartus_asm --read_settings_files=off --write_settings_files=off DE2Bot -c DE2Bot
 quartus_tan --read_settings_files=off --write_settings_files=off DE2Bot -c DE2Bot --timing_analysis_only
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
-quartus_cdb DE2Bot -c DE2Bot --update_mif
-quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
 
 
 
