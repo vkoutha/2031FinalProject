@@ -62,32 +62,43 @@ WaitForUser:
 ;* Main code
 ;***************************************************************
 Main: ; "Real" program starts here.
-	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
-		
+	OUT		RESETPOS    ; reset odometer in case wheels moved after programming	
+	LOAD	TwoFeet
+	LOAD 	FSlow
+	LOAD TwoFeetInches
+	STORE MoveDistanceAmt
+	Load FSlow
+	STORE MoveDistanceSpeed
+	CALL MoveDistance
+	CALL Die
 
-
-MoveDistanceAMT: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
-MoveSpeedAMT: DW 0
 MoveDistance:
 	ConvertedUnits: DW 0
-	LOAD MoveDistanceAMT
+	LOAD MoveDistanceAmt
 	CALL InchesToRobotUnits ; Convert MoveDistanceAMT from inches to robot units
 	STORE ConvertedUnits ; Store the target distance (robot units) in ConvertedUnits field
-MoveDistanceSetSpeed:	
-	LOAD FSlow
+MoveDistanceSetSpeed:
+	LOAD ConvertedUnits
+	OUT SSEG1	
+	OUT SSEG2
+	LOAD MoveDistanceSpeed
 	OUT LVELCMD
 	OUT RVELCMD
 	IN XPos
 	SUB ConvertedUnits
 	JNEG MoveDistanceSetSpeed
-	RETURN	
+	LOAD Zero
+	OUT LVELCMD
+	OUT RVELCMD
+	RETURN
+MoveDistanceAmt: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
+MoveDistanceSpeed: DW 0 ; Speed to move at for MoveDistance subroutine
 
-	
 ;****************************************************
 ; Subroutine which converts inches (stored in AC) to robot units and stores the result in AC
 ;****************************************************
 InchesToRobotUnits:
-	STORE m16SsA
+	STORE m16sA
 	LOAD Zero
 	ADDI 25
 	STORE m16sB
@@ -661,6 +672,7 @@ OneMeter: DW 952       ; ~1m in 1.05mm units
 HalfMeter: DW 476      ; ~0.5m in 1.05mm units
 OneFoot:  DW 290       ; ~1ft in 1.05mm robot units
 TwoFeet:  DW 581       ; ~2ft in 1.05mm units
+TwoFeetInches: DW 24
 Deg90:    DW 90        ; 90 degrees in odometer units
 Deg180:   DW 180       ; 180
 Deg270:   DW 270       ; 270
