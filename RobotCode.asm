@@ -534,6 +534,52 @@ Mod180n:
 	ADDI   -180         ; go back negative
 	RETURN
 	
+	
+;*******************************************************************************
+;DegCalc
+;Takes 4 points (x1,x2,y1,y2) calculates the arctan angle between the points
+;Store data in varibles a1,a2,b1,b2 respectfully. 
+;Arctan (Delta(Y)/Delta(X))
+;stored in degValue
+;*******************************************************************************
+DegCalc:
+	LOAD a2
+	SUB a1
+	STORE AtanX
+	LOAD Zero
+	LOAD b2
+	SUB b1
+	STORE AtanY
+	CALL Atan2
+	STORE degValue
+	Return
+a1: DW 0
+a2: DW 0
+b1: DW 0
+b2: DW 0 
+degValue: DW 0
+distValue: DW 0
+
+;*******************************************************************************
+;DistCalc
+;Takes 4 points (x1,x2,y1,y2) calculates the distance between the points
+;Store data in varibles a1,a2,b1,b2 respectfully. 
+;Stored in distValue
+;*******************************************************************************
+DistCalc:
+	LOAD a2
+	SUB a1
+	STORE L2X
+	LOAD Zero
+	LOAD b2
+	SUB b1
+	STORE L2Y
+	CALL L2Estimate
+	STORE distValue
+	Return
+
+
+	
 ;*******************************************************************************
 ; L2Estimate:  Pythagorean distance estimation
 ; Written by Kevin Johnson.  No licence or copyright applied.
