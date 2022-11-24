@@ -66,26 +66,31 @@ Main: ; "Real" program starts here.
 	LOADI 0
 	STORE a1
 	STORE b1
-	LOADI -3
-	STORE a1
-	LOADI -5
+	LOADI 48
 	STORE b2
-	OUT SSEG1
+	STORE a2
+	CALL DegCalc
+	LOAD degValue
+	STORE TurnDegreesAmt
+	LOAD FMid
+	STORE TurnDegreesSpeedP
+	LOAD RMid
+	STORE TurnDegreesSpeedN
+	CALL TurnDegrees
+	;OUT RESETPOS
 	CALL DistCalc
 	LOAD distValue
-	OUT LCD
-	OUT SSEG1
-	OUT SSEG2
-	JUMP Main
-	;LOAD	TwoFeet
-	;LOAD 	FSlow
-	;LOAD TwoFeetInches
-	;STORE MoveDistanceAmt
-	;Load FSlow
-	;STORE MoveDistanceSpeed
-	;CALL MoveDistance
+	STORE MoveDistanceAmt
+	LOAD FMid
+	STORE MoveDistanceSpeed
+	CALL MoveDistance
 	CALL Die
 
+;/******************************************************************
+; MoveDistance Subroutine
+; Moves a distance specified by the global variable MoveDistanceAmt (in inches) at a speed specified by MoveDistanceSpeed (robot units / sec)
+; MoveDistanceAmt is converted within the subroutine to RobotUnits by the InchesToRobotUnits subroutine, so there is no need for any manual conversions
+;/******************************************************************
 MoveDistance:
 	ConvertedUnits: DW 0
 	LOAD MoveDistanceAmt
@@ -108,8 +113,36 @@ MoveDistanceSetSpeed:
 MoveDistanceAmt: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
 MoveDistanceSpeed: DW 0 ; Speed to move at for MoveDistance subroutine
 
+TurnDegrees:
+	LOAD TurnDegreesAmt
+	JNEG TDNegAngle
+	LOAD TurnDegreesSpeedP
+	OUT RVELCMD
+	LOAD TurnDegreesSpeedN
+	OUT LVELCMD
+	JUMP TDCompare
+TDNegAngle:
+	LOAD TurnDegreesSpeedN
+	OUT RVELCMD
+	LOAD TurnDegreesSpeedP
+	OUT LVELCMD
+TDCompare: 
+	IN Theta
+	SUB TurnDegreesAmt
+	JNEG TurnDegrees
+	LOAD Zero
+	OUT LVELCMD
+	OUT RVELCMD
+	RETURN
+TurnDegreesAmt: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
+TurnDegreesSpeedP: DW 0 ; Speed to move at for MoveDistance subroutine
+TurnDegreesSpeedN: DW 0 ; Speed to move at for MoveDistance subroutine
+
 ;****************************************************
 ; Subroutine which converts inches (stored in AC) to robot units and stores the result in AC
+; This approximates the conversion between inches to robot units; The proper conversion is (Inches = RobotUnits * 1.05 / 25.4),
+; but there is no Floating Point Unit (FPU) to make do this floating point arithmetic, so the formula is approximated to
+; Inches = RobotUnits / 25
 ;****************************************************
 InchesToRobotUnits:
 	STORE m16sA
@@ -656,6 +689,7 @@ L2T3: DW 0
 ;***************************************************************
 ;* Variables
 ;***************************************************************
+
 Temp:  DW 0 ; "Temp" is not a great name, but can be useful
 Temp2: DW 0
 Temp3: DW 0
@@ -747,6 +781,9 @@ RFast:    DW -500
 MinBatt:  DW 110       ; 13.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
 I2CRCmd:  DW &H0190    ; write nothing, read one byte, addr 0x90
+
+AdjMatrix: DW 8, 7, 3, 4, 5
+DestArray: DW 2
 
 ;***************************************************************
 ;* IO address space map
