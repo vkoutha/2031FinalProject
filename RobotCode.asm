@@ -63,14 +63,32 @@ WaitForUser:
 ;***************************************************************
 Main: ; "Real" program starts here.
 	OUT		RESETPOS    ; reset odometer in case wheels moved after programming	
-	LOAD	TwoFeet
-	LOAD 	FSlow
-	LOAD TwoFeetInches
-	STORE MoveDistanceAmt
-	Load FSlow
-	STORE MoveDistanceSpeed
-	CALL MoveDistance
-	CALL Die
+	;LOAD Deg90
+	;STORE TurnDegreesAmt
+	;LOAD FSlow
+	;STORE TurnDegreesSpeedP
+	;LOAD RSlow
+	;STORE TurnDegreesSpeedN
+	;CALL TurnDegrees
+GetAngle:
+	LOAD Zero
+	STORE INDX	
+	LOADI AdjMatrix
+	ADD INDX
+	STORE Ptr
+	ILOAD Ptr
+	OUT SSEG1
+	OUT LCD
+	
+	LOAD One
+	STORE INDX
+	LOADI AdjMatrix
+	ADD INDX
+	STORE Ptr
+	ILOAD Ptr
+	OUT SSEG2
+	OUT LCD
+	JUMP GetAngle
 
 ;/******************************************************************
 ; MoveDistance Subroutine
@@ -98,6 +116,31 @@ MoveDistanceSetSpeed:
 	RETURN
 MoveDistanceAmt: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
 MoveDistanceSpeed: DW 0 ; Speed to move at for MoveDistance subroutine
+
+TurnDegrees:
+	LOAD TurnDegreesAmt
+	JNEG TDNegAngle
+	LOAD TurnDegreesSpeedP
+	OUT RVELCMD
+	LOAD TurnDegreesSpeedN
+	OUT LVELCMD
+	JUMP TDCompare
+TDNegAngle:
+	LOAD TurnDegreesSpeedN
+	OUT RVELCMD
+	LOAD TurnDegreesSpeedP
+	OUT LVELCMD
+TDCompare: 
+	IN Theta
+	SUB TurnDegreesAmt
+	JNEG TurnDegrees
+	LOAD Zero
+	OUT LVELCMD
+	OUT RVELCMD
+	RETURN
+TurnDegreesAmt: DW 0 ; Distance (in inches) to move for MoveDistance subroutine
+TurnDegreesSpeedP: DW 0 ; Speed to move at for MoveDistance subroutine
+TurnDegreesSpeedN: DW 0 ; Speed to move at for MoveDistance subroutine
 
 ;****************************************************
 ; Subroutine which converts inches (stored in AC) to robot units and stores the result in AC
@@ -604,6 +647,7 @@ L2T3: DW 0
 ;***************************************************************
 ;* Variables
 ;***************************************************************
+
 Temp:  DW 0 ; "Temp" is not a great name, but can be useful
 Temp2: DW 0
 Temp3: DW 0
@@ -695,6 +739,9 @@ RFast:    DW -500
 MinBatt:  DW 110       ; 13.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
 I2CRCmd:  DW &H0190    ; write nothing, read one byte, addr 0x90
+
+AdjMatrix: DW 8, 7, 3, 4, 5
+DestArray: DW 2
 
 ;***************************************************************
 ;* IO address space map
