@@ -62,14 +62,21 @@ WaitForUser:
 ;* Main code
 ;***************************************************************
 Main: ; "Real" program starts here.
-	OUT		RESETPOS    ; reset odometer in case wheels moved after programming	
-	LOADI 60
-	STORE L2X
-	LOADI 60
-	STORE L2Y
-	CALL L2Estimate
+	OUT		RESETPOS    ; reset odometer in case wheels moved after programming
+	LOADI 0
+	STORE a1
+	STORE b1
+	LOADI -3
+	STORE a1
+	LOADI -5
+	STORE b2
+	OUT SSEG1
+	CALL DistCalc
+	LOAD distValue
+	OUT LCD
 	OUT SSEG1
 	OUT SSEG2
+	JUMP Main
 	;LOAD	TwoFeet
 	;LOAD 	FSlow
 	;LOAD TwoFeetInches
