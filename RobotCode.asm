@@ -72,9 +72,9 @@ Main: ; "Real" program starts here.
 	CALL DegCalc
 	LOAD degValue
 	STORE TurnDegreesAmt
-	LOAD FMid
+	LOAD FSlow
 	STORE TurnDegreesSpeedP
-	LOAD RMid
+	LOAD RSlow
 	STORE TurnDegreesSpeedN
 	CALL TurnDegrees
 	;OUT RESETPOS
@@ -83,6 +83,7 @@ Main: ; "Real" program starts here.
 	STORE MoveDistanceAmt
 	LOAD FMid
 	STORE MoveDistanceSpeed
+	CALL Wait1
 	CALL MoveDistance
 	CALL Die
 
@@ -180,7 +181,7 @@ Wloop:
 	OUT    SSEG2
 	IN     TIMER
 	OUT    XLEDS       ; User-feedback that a pause is occurring.
-	ADDI   -10         ; 1 second in 10Hz.
+	ADDI   -2         ; 1 second in 10Hz.
 	JNEG   Wloop
 	RETURN
 
