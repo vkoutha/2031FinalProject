@@ -63,27 +63,32 @@ WaitForUser:
 ;***************************************************************
 Main: ; "Real" program starts here.
 	OUT		RESETPOS    ; reset odometer in case wheels moved after programming
-	LOADI 0
-	STORE a1
-	STORE b1
-	LOADI 48
-	STORE b2
-	STORE a2
+
+MoveFunc:
+	LOADI 0 ; This will be point 1 from table
+	STORE a1 ; point 1 (x)
+	STORE b1 ; point 1 (y)
+	LOADI 48 ; This will be point 2 from table
+	STORE a2 ; point 2 (X)
+	STORE b2 ; point 2 (Y)
 	CALL DegCalc
-	LOAD degValue
-	STORE TurnDegreesAmt
-	LOAD FSlow
+	
+	;;;;;;;;;;
+	LOAD FMid
 	STORE TurnDegreesSpeedP
-	LOAD RSlow
+	LOAD RMid
 	STORE TurnDegreesSpeedN
+	;;;;;;;;;;;
+	
 	CALL TurnDegrees
 	;OUT RESETPOS
 	CALL DistCalc
-	LOAD distValue
-	STORE MoveDistanceAmt
+	
+	;;;;;;;;
 	LOAD FMid
 	STORE MoveDistanceSpeed
-	CALL Wait1
+	;;;;;;;;
+	
 	CALL MoveDistance
 	CALL Die
 
@@ -181,7 +186,7 @@ Wloop:
 	OUT    SSEG2
 	IN     TIMER
 	OUT    XLEDS       ; User-feedback that a pause is occurring.
-	ADDI   -2         ; 1 second in 10Hz.
+	ADDI   -10         ; 1 second in 10Hz.
 	JNEG   Wloop
 	RETURN
 
@@ -592,14 +597,14 @@ DegCalc:
 	SUB b1
 	STORE AtanY
 	CALL Atan2
-	STORE degValue
+	STORE TurnDegreesAmt
 	Return
 a1: DW 0
 a2: DW 0
 b1: DW 0
 b2: DW 0 
-degValue: DW 0
-distValue: DW 0
+;degValue: DW 0
+;distValue: DW 0
 
 ;*******************************************************************************
 ;DistCalc
@@ -616,7 +621,7 @@ DistCalc:
 	SUB b1
 	STORE L2Y
 	CALL L2Estimate
-	STORE distValue
+	STORE MoveDistanceAmt
 	Return
 
 
