@@ -27,13 +27,12 @@ int main() {
     currDestination = 0;
     visitedSet = 1;
     setDestinationPoint(0, 0, 0);
-    setDestinationPoint(4, 4, 1);
-    setDestinationPoint(1, 0, 2);
-    setDestinationPoint(0, 0, 3);
-    setDestinationPoint(10, 10, 4);
-    setDestinationPoint(11, 11, 5);
-    setDestinationPoint(-3, -3, 6);
+    setDestinationPoint(1, 0, 1);
+    setDestinationPoint(2, 0, 2);
+    setDestinationPoint(3, 0, 3);
+    setDestinationPoint(4, 0, 4);
     fillMatrix();
+    printMatrix();
     createRoute();
     printRoute();
     return 0;
@@ -41,7 +40,8 @@ int main() {
 
 void setDestinationPoint(int16_t x, int16_t y, uint8_t destNum) {
     destinations[destNum] = (x << 24) | (y << 8) | (destNum);
-    printf("Hex Format: %.10X\n", destinations[destNum]);
+    // 0x FFFF FFFF FF
+    //printf("Hex Format: %.10X\n", destinations[destNum]);
     NUM_DESTINATIONS++;
 }
 

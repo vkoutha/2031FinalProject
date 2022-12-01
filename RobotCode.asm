@@ -75,19 +75,23 @@ TL:	LOAD Mi
 	ADDI -1
 	JPOS MLoopEnd
 	JZero MLoopEnd ; End of for loop conditions
-	LOADI SortedDestArray
+	LOADI AdjMatrixDist
+	;ADDI 13
 	ADD Mi
 	STORE Ptr
 	ILOAD Ptr
 	OUT LCD
 	CALL Wait1
 	CALL Wait1
+	LOADI &HFF
+	OUT LCD
+	CALL Wait1
 	LOAD Mi
 	ADDI 1
 	STORE Mi
 	JUMP TL
 	
-MLoopEnd: JUMP Mi
+MLoopEnd: NOP
 		
 	CALL Die
 
@@ -700,13 +704,13 @@ NumDestinations: DW 5
 ;* Subroutine to fill adjacency matrix of size NumDestinations based on the destinations provided in InitDestArray table
 ;*******************************************
 FillAdjMatrix:
-	FAMi: DW 0
-	FAMj: DW 0
-FAMCheckI: LOAD FAMi
+	FAMi: DW 0 ; i pointer for outer loop
+	FAMj: DW 0 ; j pointer for outer loop
+FAMCheckI: LOAD FAMi ; Checking if outer loop conditions are true or not (whether or not to end loop)
 	SUB NumDestinations
-	JPOS FAMEndI
-	JZero FAMEndI
-	
+	JPOS FAMEndI ; Jump to end of outer loop
+	JZero FAMEndI ; Jump to end of outer loop
+
 FAMCheckJ: LOAD FAMj
 	SUB NumDestinations
 	JPOS FAMEndJ
@@ -726,6 +730,7 @@ FAMCheckJ: LOAD FAMj
 	STORE a1 ; Store x position for Point 1 in a1
 	LOAD Ptr 
 	ADDI 1 ; Get y position pointer for Point 1 and place in AC
+	STORE Ptr
 	ILOAD Ptr ; Get y position for Point 1 and place in AC
 	STORE b1 ; Store y position for Point 1 in b1
 	
@@ -739,22 +744,25 @@ FAMCheckJ: LOAD FAMj
 	STORE a2 ; Store x position pointer for Point 2 in a2
 	LOAD Ptr 
 	ADDI 1 ; Get y position pointer for Point 2 and place in AC
+	STORE Ptr
 	ILOAD Ptr ; Get y position for Point 2 and place in AC
 	STORE b2 ; Store y position for Point 2 in b1
 	
-	LOADI 13
-	STORE m16sA ; Load 13 into m16sA
+	LOAD NumDestinations 
+	STORE m16sA ; Load NumDestinations into m16sA
 	LOAD FAMi
 	STORE m16sB ; Load i into m16sB
-	CALL Mult16s ; Multiply 13 by i
-	LOAD mres16sL ; Load result of 13*i into AC
+	CALL Mult16s ; Multiply NumDestinations by i
+	LOAD mres16sL ; Load result of NumDestinations*i into AC
 	ADD FAMj ; Add j to result
-	STORE Temp ; Temp holds offset needed for a 2D matrix [i][j] ; In this case, the offset is 13*i + j
+	STORE Temp ; Temp holds offset needed for a 2D matrix [i][j] ; In this case, the offset is NumDestinations*i + j
 	CALL DistCalc ; Calculate distance between two points
 	LOADI AdjMatrixDist ; Get base pointer to AdjMatrixDist
 	ADD Temp ; Get proper index pointer to write to in AdjMatrixDist
 	STORE Ptr ; Store AdjMatrixDist pointer in Ptr
 	LOAD distValue ; Load distance between two points into AC
+	OUT LCD
+	CALL Wait1
 	ISTORE Ptr ; Write distance to AdjMatrixDist array
 	CALL DegCalc ; Calculate angle between two points
 	LOADI AdjMatrixAng ; Get base pointer to AdjMatrixAng
@@ -1041,30 +1049,30 @@ DW  &H04 ; Dest4 X
 DW  &H00 ; Dest4 Y
 DW  4 ; Dest4 #
 
-DW  15
-DW  16
-DW  17
-DW  18
-DW  19
-DW  20
-DW  21
-DW  22
-DW  23
-DW  24
-DW  25
-DW  26
-DW  27
-DW  28
-DW  29
-DW  30
-DW  31
-DW  32
-DW  33
-DW  34
-DW  35
-DW  36
-DW  37
-DW  38
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
 
 ;***************************************************************
 ;* Array for final destinations, which holds the order of destinations to go to after Greedy Algorithm has been executed
@@ -1087,46 +1095,46 @@ DW  0
 ;* Array to hold the distances to each destination for the adjacency matrix (13x13)
 ;***************************************************************
 AdjMatrixDist: DW  0
-DW  1
-DW  2
-DW  3
-DW  4
-DW  5
-DW  6
-DW  7
-DW  8
-DW  9
-DW  10
-DW  11
-DW  12
-DW  13
-DW  14
-DW  15
-DW  16
-DW  17
-DW  18
-DW  19
-DW  20
-DW  21
-DW  22
-DW  23
-DW  24
-DW  25
-DW  26
-DW  27
-DW  28
-DW  29
-DW  30
-DW  31
-DW  32
-DW  33
-DW  34
-DW  35
-DW  36
-DW  37
-DW  38
-DW  39
-DW  40
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
 DW  41
 DW  42
 DW  43
