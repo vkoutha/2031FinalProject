@@ -63,28 +63,32 @@ WaitForUser:
 ;***************************************************************
 Main: ; "Real" program starts here.
 	OUT		RESETPOS    ; reset odometer in case wheels moved after programming
-	LOADI 0
-	STORE a1
-	STORE b1
-	LOADI 48
-	STORE b2
-	STORE a2
-	CALL DegCalc
-	LOAD degValue
-	STORE TurnDegreesAmt
-	LOAD FSlow
-	STORE TurnDegreesSpeedP
-	LOAD RSlow
-	STORE TurnDegreesSpeedN
-	CALL TurnDegrees
-	;OUT RESETPOS
-	CALL DistCalc
-	LOAD distValue
-	STORE MoveDistanceAmt
-	LOAD FMid
-	STORE MoveDistanceSpeed
+	CALL FillAdjMatrix
+	CALL CreateRoute
+	LOADI &HFF
+	OUT LCD
 	CALL Wait1
-	CALL MoveDistance
+	CALL Wait1
+Mi:	DW 0
+TL:	LOAD Mi
+	SUB NumDestinations
+	ADDI -1
+	JPOS MLoopEnd
+	JZero MLoopEnd ; End of for loop conditions
+	LOADI SortedDestArray
+	ADD Mi
+	STORE Ptr
+	ILOAD Ptr
+	OUT LCD
+	CALL Wait1
+	CALL Wait1
+	LOAD Mi
+	ADDI 1
+	STORE Mi
+	JUMP TL
+	
+MLoopEnd: JUMP Mi
+		
 	CALL Die
 
 ;/******************************************************************
@@ -181,7 +185,7 @@ Wloop:
 	OUT    SSEG2
 	IN     TIMER
 	OUT    XLEDS       ; User-feedback that a pause is occurring.
-	ADDI   -2         ; 1 second in 10Hz.
+	ADDI   -10         ; 1 second in 10Hz.
 	JNEG   Wloop
 	RETURN
 
@@ -257,6 +261,8 @@ I2CError:
 	OUT    SSEG1
 	OUT    SSEG2       ; display error message
 	JUMP   I2CError
+	
+
 
 ; Example of table definition and data fetch
 Table: ; Table = [0, 1, 2]
@@ -686,6 +692,178 @@ L2T1: DW 0
 L2T2: DW 0
 L2T3: DW 0
 
+NumDestinations: DW 5
+
+;*******************************************
+;* FillAdjMatrix:
+;*
+;* Subroutine to fill adjacency matrix of size NumDestinations based on the destinations provided in InitDestArray table
+;*******************************************
+FillAdjMatrix:
+	FAMi: DW 0
+	FAMj: DW 0
+FAMCheckI: LOAD FAMi
+	SUB NumDestinations
+	JPOS FAMEndI
+	JZero FAMEndI
+	
+FAMCheckJ: LOAD FAMj
+	SUB NumDestinations
+	JPOS FAMEndJ
+	JZero FAMEndJ	
+
+	; Begin Calculations	
+
+	LOAD Three
+	STORE m16sA ; Load 3 into m16sA
+	LOAD FAMi
+	STORE m16sB ; Load i into m16sB
+	CALL Mult16s ; Calculate offset from start of array by multiplying index by 3 since each destination in the array is 3 words long
+	LOADI InitDestArray
+	ADD mres16sL ; Get x position pointer for Point 1 (Use m16sLow since high word will be 0 since we are dealing with small values)
+	STORE Ptr
+	ILOAD Ptr ; Get x position for Point 1 and place in AC
+	STORE a1 ; Store x position for Point 1 in a1
+	LOAD Ptr 
+	ADDI 1 ; Get y position pointer for Point 1 and place in AC
+	ILOAD Ptr ; Get y position for Point 1 and place in AC
+	STORE b1 ; Store y position for Point 1 in b1
+	
+	LOAD FAMj
+	STORE m16sB
+	CALL Mult16s ; Calculate offset from start of array
+	LOADI InitDestArray
+	ADD mres16sL ; Get x position pointer for Point 2
+	STORE Ptr
+	ILOAD Ptr ; Get x position for Point 2 and place in AC
+	STORE a2 ; Store x position pointer for Point 2 in a2
+	LOAD Ptr 
+	ADDI 1 ; Get y position pointer for Point 2 and place in AC
+	ILOAD Ptr ; Get y position for Point 2 and place in AC
+	STORE b2 ; Store y position for Point 2 in b1
+	
+	LOADI 13
+	STORE m16sA ; Load 13 into m16sA
+	LOAD FAMi
+	STORE m16sB ; Load i into m16sB
+	CALL Mult16s ; Multiply 13 by i
+	LOAD mres16sL ; Load result of 13*i into AC
+	ADD FAMj ; Add j to result
+	STORE Temp ; Temp holds offset needed for a 2D matrix [i][j] ; In this case, the offset is 13*i + j
+	CALL DistCalc ; Calculate distance between two points
+	LOADI AdjMatrixDist ; Get base pointer to AdjMatrixDist
+	ADD Temp ; Get proper index pointer to write to in AdjMatrixDist
+	STORE Ptr ; Store AdjMatrixDist pointer in Ptr
+	LOAD distValue ; Load distance between two points into AC
+	ISTORE Ptr ; Write distance to AdjMatrixDist array
+	CALL DegCalc ; Calculate angle between two points
+	LOADI AdjMatrixAng ; Get base pointer to AdjMatrixAng
+	ADD Temp ; Get proper index pointer to write to in AdjMatrixAng
+	STORE Ptr ; Store AdjMatrixAng pointer in Ptr
+	LOAD degValue ; Load angle between two points into AC
+	ISTORE Ptr ; Write angle to AdjMatrixAng array
+	
+	; End Calculations
+    
+    LOAD FAMj
+    ADDI 1
+    STORE FAMj
+    JUMP FAMCheckJ
+    
+FAMEndJ: LOAD FAMi
+	ADDI 1
+	STORE FAMi
+	JUMP FAMCheckI
+	
+FAMEndI: RETURN
+
+
+;*******************************************
+;* CreateRoute
+;*
+;* Subroutine to generate a route between destinations in InitDestArray based on the AdjMatrixDist array
+;*******************************************
+CreateRoute:
+closestIdx: DW -1
+closestDist: DW &HFFFF
+CRi: DW 0
+CRj: DW 0
+currDest: DW 0 ; 0 as we will start at Destination 0 (origin)
+visitedSet: DW 1 ; 1 as we will consider [0, 0] already visited
+
+CRCheckI: LOAD CRi
+	SUB NumDestinations
+	ADDI -1
+	JPOS CREndI
+	JZero CREndI
+	
+	LOAD HighWord
+	STORE closestDist
+
+CRCheckJ: LOAD CRj
+	SUB NumDestinations
+	JPOS CREndJ
+	JZero CREndJ
+	
+	; Start Calculations
+	
+	LOAD CRj
+    SUB currDest
+    JZERO IfCheckEnd ; (if j != currDest) then skip to IfCheckEnd
+    LOADI 13
+    STORE m16sA
+    LOAD currDest
+    STORE m16sB
+    CALL Mult16s ; Multiply 13*currDest
+    LOADI AdjMatrixDist
+    ADD mres16sL
+    ADD CRj ; Get pointer for Adj[currDest][j]
+    STORE Ptr ; Store pointer for Adj[currDest][j] in Ptr
+    ILOAD Ptr
+    SUB closestDist
+    JPOS IfCheckEnd ; Branch to IfCheckEnd if (Adj[currDestination][j] >= closest)]
+    JZero IfCheckEnd ; Branch to IfCheckEnd if (Adj[currDestination][j] >= closest)]
+    
+    ; Continue working on from visitedSet & (1 << j) == 0
+    LOADI Mask0
+    ADD CRj
+    AND visitedSet
+    JNEG IfCheckEnd ; Branch to IfCheckEnd if (visistedSet & (1 << j) != 0)
+    JPOS IfCheckEnd ; Branch to IfCheckEnd if (visitedSet & (1 << j) != 0)
+    ILOAD Ptr ; Load Adj[currDest][j] into AC
+    STORE closestDist ; closestDist = Adj[currDest][j]
+    LOAD CRj
+    STORE closestIdx ; closestIdx = j
+    LOADI SortedDestArray
+    ADD CRi
+    STORE Ptr ; Store SortedDestArray[i] pointer in Ptr
+    LOAD closestIdx ; Load closestIdx in AC
+    ISTORE Ptr ; Load closestIdx into SortedDestArray[i]
+    
+    
+IfCheckEnd: NOP 
+    ; End Calculations
+    
+    LOAD CRj ; Increment j at the end of the loop and jump back to top of loop
+    ADDI 1
+    STORE CRj
+    JUMP CRCheckJ
+    
+CREndJ: LOADI Mask0 ; Load mask for 0b000000001
+	ADD closestIdx ; Shift left by closestIdx bits
+	OR visitedSet ; OR by visitedSet
+	STORE visitedSet ; Store visited set by result in AC
+	LOAD closestIdx ; Load closestIdx
+	STORE currDest ; Set current destination (currDest) to closestIdx
+	
+	LOAD CRi ; Increment i at the end of the loop and jump back to the top of the loop
+	ADDI 1
+	STORE CRi
+	JUMP CRCheckI
+	
+CREndI: RETURN
+
+
 
 ;***************************************************************
 ;* Variables
@@ -759,8 +937,17 @@ Mask4:    DW &B00010000
 Mask5:    DW &B00100000
 Mask6:    DW &B01000000
 Mask7:    DW &B10000000
+Mask8:	  DW &H100
+Mask9:    DW &H200
+Mask10:	  DW &H400
+Mask11:   DW &H800
+Mask12:   DW &H1000
+Mask13:   DW &H2000
+Mask14:   DW &H4000
+Mask15:   DW &H8000
 LowByte:  DW &HFF      ; binary 00000000 1111111
 LowNibl:  DW &HF       ; 0000 0000 0000 1111
+HighWord: DW &HFFFF
 
 ; some useful movement values
 OneMeter: DW 952       ; ~1m in 1.05mm units
@@ -782,9 +969,6 @@ RFast:    DW -500
 MinBatt:  DW 110       ; 13.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
 I2CRCmd:  DW &H0190    ; write nothing, read one byte, addr 0x90
-
-AdjMatrix: DW 8, 7, 3, 4, 5
-DestArray: DW 2
 
 ;***************************************************************
 ;* IO address space map
@@ -828,5 +1012,421 @@ THETA:    EQU &HC2  ; Current rotational position of robot (0-359)
 RESETPOS: EQU &HC3  ; write anything here to reset odometry to 0
 RIN:      EQU &HC8
 LIN:      EQU &HC9
+
+;***************************************************************
+;* Array to hold the initial given destinations locations and destination number
+;  3 words are reserved for each destination
+;  Word 1 = X Position
+;  Word 2 = Y Position
+;  Word 3 = Destination Number
+;  Therefore, MEM(0) to MEM(2) (inclusive) represent data for the first destination, MEM(3) to MEM(5) represent data for the second destination, etc.
+;***************************************************************
+InitDestArray: DW &H00 ; Dest0 X
+DW  &H00 ; Dest0 Y 
+DW  0 ; Dest0 #
+
+DW  &H01 ; Dest1 X
+DW  &H00; Dest1 Y
+DW  1 ; Dest1 #
+
+DW  &H02 ; Dest2 X
+DW  &H00; Dest2 Y
+DW  2 ; Dest2 #
+
+DW  &H03 ; Dest3 X
+DW  &H00 ; Dest3 Y
+DW  3 ; Dest3 #
+
+DW  &H04 ; Dest4 X
+DW  &H00 ; Dest4 Y
+DW  4 ; Dest4 #
+
+DW  15
+DW  16
+DW  17
+DW  18
+DW  19
+DW  20
+DW  21
+DW  22
+DW  23
+DW  24
+DW  25
+DW  26
+DW  27
+DW  28
+DW  29
+DW  30
+DW  31
+DW  32
+DW  33
+DW  34
+DW  35
+DW  36
+DW  37
+DW  38
+
+;***************************************************************
+;* Array for final destinations, which holds the order of destinations to go to after Greedy Algorithm has been executed
+;***************************************************************
+SortedDestArray: DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+DW  0
+
+;***************************************************************
+;* Array to hold the distances to each destination for the adjacency matrix (13x13)
+;***************************************************************
+AdjMatrixDist: DW  0
+DW  1
+DW  2
+DW  3
+DW  4
+DW  5
+DW  6
+DW  7
+DW  8
+DW  9
+DW  10
+DW  11
+DW  12
+DW  13
+DW  14
+DW  15
+DW  16
+DW  17
+DW  18
+DW  19
+DW  20
+DW  21
+DW  22
+DW  23
+DW  24
+DW  25
+DW  26
+DW  27
+DW  28
+DW  29
+DW  30
+DW  31
+DW  32
+DW  33
+DW  34
+DW  35
+DW  36
+DW  37
+DW  38
+DW  39
+DW  40
+DW  41
+DW  42
+DW  43
+DW  44
+DW  45
+DW  46
+DW  47
+DW  48
+DW  49
+DW  50
+DW  51
+DW  52
+DW  53
+DW  54
+DW  55
+DW  56
+DW  57
+DW  58
+DW  59
+DW  60
+DW  61
+DW  62
+DW  63
+DW  64
+DW  65
+DW  66
+DW  67
+DW  68
+DW  69
+DW  70
+DW  71
+DW  72
+DW  73
+DW  74
+DW  75
+DW  76
+DW  77
+DW  78
+DW  79
+DW  80
+DW  81
+DW  82
+DW  83
+DW  84
+DW  85
+DW  86
+DW  87
+DW  88
+DW  89
+DW  90
+DW  91
+DW  92
+DW  93
+DW  94
+DW  95
+DW  96
+DW  97
+DW  98
+DW  99
+DW  100
+DW  101
+DW  102
+DW  103
+DW  104
+DW  105
+DW  106
+DW  107
+DW  108
+DW  109
+DW  110
+DW  111
+DW  112
+DW  113
+DW  114
+DW  115
+DW  116
+DW  117
+DW  118
+DW  119
+DW  120
+DW  121
+DW  122
+DW  123
+DW  124
+DW  125
+DW  126
+DW  127
+DW  128
+DW  129
+DW  130
+DW  131
+DW  132
+DW  133
+DW  134
+DW  135
+DW  136
+DW  137
+DW  138
+DW  139
+DW  140
+DW  141
+DW  142
+DW  143
+DW  144
+DW  145
+DW  146
+DW  147
+DW  148
+DW  149
+DW  150
+DW  151
+DW  152
+DW  153
+DW  154
+DW  155
+DW  156
+DW  157
+DW  158
+DW  159
+DW  160
+DW  161
+DW  162
+DW  163
+DW  164
+DW  165
+DW  166
+DW  167
+DW  168
+
+;***************************************************************
+;* Array to hold the angles to each destination for the adjacency matrix
+;***************************************************************
+AdjMatrixAng: DW  0
+DW  1
+DW  2
+DW  3
+DW  4
+DW  5
+DW  6
+DW  7
+DW  8
+DW  9
+DW  10
+DW  11
+DW  12
+DW  13
+DW  14
+DW  15
+DW  16
+DW  17
+DW  18
+DW  19
+DW  20
+DW  21
+DW  22
+DW  23
+DW  24
+DW  25
+DW  26
+DW  27
+DW  28
+DW  29
+DW  30
+DW  31
+DW  32
+DW  33
+DW  34
+DW  35
+DW  36
+DW  37
+DW  38
+DW  39
+DW  40
+DW  41
+DW  42
+DW  43
+DW  44
+DW  45
+DW  46
+DW  47
+DW  48
+DW  49
+DW  50
+DW  51
+DW  52
+DW  53
+DW  54
+DW  55
+DW  56
+DW  57
+DW  58
+DW  59
+DW  60
+DW  61
+DW  62
+DW  63
+DW  64
+DW  65
+DW  66
+DW  67
+DW  68
+DW  69
+DW  70
+DW  71
+DW  72
+DW  73
+DW  74
+DW  75
+DW  76
+DW  77
+DW  78
+DW  79
+DW  80
+DW  81
+DW  82
+DW  83
+DW  84
+DW  85
+DW  86
+DW  87
+DW  88
+DW  89
+DW  90
+DW  91
+DW  92
+DW  93
+DW  94
+DW  95
+DW  96
+DW  97
+DW  98
+DW  99
+DW  100
+DW  101
+DW  102
+DW  103
+DW  104
+DW  105
+DW  106
+DW  107
+DW  108
+DW  109
+DW  110
+DW  111
+DW  112
+DW  113
+DW  114
+DW  115
+DW  116
+DW  117
+DW  118
+DW  119
+DW  120
+DW  121
+DW  122
+DW  123
+DW  124
+DW  125
+DW  126
+DW  127
+DW  128
+DW  129
+DW  130
+DW  131
+DW  132
+DW  133
+DW  134
+DW  135
+DW  136
+DW  137
+DW  138
+DW  139
+DW  140
+DW  141
+DW  142
+DW  143
+DW  144
+DW  145
+DW  146
+DW  147
+DW  148
+DW  149
+DW  150
+DW  151
+DW  152
+DW  153
+DW  154
+DW  155
+DW  156
+DW  157
+DW  158
+DW  159
+DW  160
+DW  161
+DW  162
+DW  163
+DW  164
+DW  165
+DW  166
+DW  167
+DW  168
 	  
 
