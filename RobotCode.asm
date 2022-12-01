@@ -63,6 +63,8 @@ WaitForUser:
 ;***************************************************************
 Main: ; "Real" program starts here.
 	OUT		RESETPOS    ; reset odometer in case wheels moved after programming
+	CALL MoveFunc
+	CALL Die
 
 MoveFunc:
 	LOADI 0 ; This will be point 1 from table
@@ -74,9 +76,9 @@ MoveFunc:
 	CALL DegCalc
 	
 	;;;;;;;;;;
-	LOAD FMid
+	LOAD FSlow
 	STORE TurnDegreesSpeedP
-	LOAD RMid
+	LOAD RSlow
 	STORE TurnDegreesSpeedN
 	;;;;;;;;;;;
 	
@@ -89,8 +91,10 @@ MoveFunc:
 	STORE MoveDistanceSpeed
 	;;;;;;;;
 	
+	CALL WaitMin
+	
 	CALL MoveDistance
-	CALL Die
+	RETURN
 
 ;/******************************************************************
 ; MoveDistance Subroutine
@@ -188,6 +192,17 @@ Wloop:
 	OUT    XLEDS       ; User-feedback that a pause is occurring.
 	ADDI   -10         ; 1 second in 10Hz.
 	JNEG   Wloop
+	RETURN
+	
+WaitMin:
+	OUT    TIMER
+WMinloop:
+	IN     LIN
+	OUT    SSEG2
+	IN     TIMER
+	OUT    XLEDS       ; User-feedback that a pause is occurring.
+	ADDI   -5         ; 1 second in 10Hz.
+	JNEG   WMinloop
 	RETURN
 
 ; This subroutine will get the battery voltage,
