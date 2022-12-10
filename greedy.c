@@ -27,10 +27,11 @@ int main() {
     currDestination = 0;
     visitedSet = 1;
     setDestinationPoint(0, 0, 0);
-    setDestinationPoint(1, 0, 1);
+    setDestinationPoint(-1, -1, 1);
     setDestinationPoint(2, 0, 2);
     setDestinationPoint(3, 0, 3);
     setDestinationPoint(4, 0, 4);
+    setDestinationPoint(5, 0, 5);
     fillMatrix();
     printMatrix();
     createRoute();

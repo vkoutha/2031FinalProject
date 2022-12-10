@@ -63,37 +63,50 @@ WaitForUser:
 ;***************************************************************
 Main: ; "Real" program starts here.
 	OUT		RESETPOS    ; reset odometer in case wheels moved after programming
-	CALL FillAdjMatrix
-	CALL CreateRoute
-	LOADI &HFF
-	OUT LCD
+	
+	LOADI 0
+	STORE a1
+	STORE b1
+	LOADI 1
+	STORE a2
+	LOADI -9
+	STORE b2
+	CALL DegCalc
+	LOAD degValue
+	OUT SSEG1
+	;CALL FillAdjMatrix
+	;LOADI &HAAAA
+	;OUT SSEG1
+	;CALL Wait1
+	;CALL Wait1
+	;CALL CreateRoute
+	
+	CALL Die
+	
+Mi: DW 0
+MTL: LOAD Mi
+	SUB NumDestinations ; Check i < NumDestinations - 1 (array size - 1)
+	ADDI 1
+	JPOS MEnd
+	JZERO MEnd
+
+	LOADI &HBEEF
+	OUT SSEG1
 	CALL Wait1
-	CALL Wait1
-Mi:	DW 0
-TL:	LOAD Mi
-	SUB NumDestinations
-	ADDI -1
-	JPOS MLoopEnd
-	JZero MLoopEnd ; End of for loop conditions
-	LOADI AdjMatrixDist
-	;ADDI 13
+	LOADI SortedDestArray 
 	ADD Mi
-	STORE Ptr
-	ILOAD Ptr
 	OUT LCD
+	STORE Ptr ; Get pointer to SortedDestArray
+	ILOAD Ptr ; Load value in pointer
+	OUT SSEG1 ; Display on screen
 	CALL Wait1
-	CALL Wait1
-	LOADI &HFF
-	OUT LCD
 	CALL Wait1
 	LOAD Mi
-	ADDI 1
+	ADDI 1 ; i++
 	STORE Mi
-	JUMP TL
+	JUMP MTL ; Jump back to top of loop
 	
-MLoopEnd: NOP
-		
-	CALL Die
+MEnd: Call Die
 
 ;/******************************************************************
 ; MoveDistance Subroutine
@@ -603,7 +616,16 @@ DegCalc:
 	STORE AtanY
 	CALL Atan2
 	STORE degValue
-	Return
+	
+	LOAD degValue
+	ADDI -180
+	JNEG DeCRet
+	LOAD degValue
+	ADDI -360
+	STORE degValue
+	
+DeCRet: RETURN
+
 a1: DW 0
 a2: DW 0
 b1: DW 0
@@ -618,16 +640,33 @@ distValue: DW 0
 ;Stored in distValue
 ;*******************************************************************************
 DistCalc:
-	LOAD a2
-	SUB a1
-	STORE L2X
-	LOAD Zero
-	LOAD b2
-	SUB b1
-	STORE L2Y
-	CALL L2Estimate
+	LOAD a2 ; Load x2
+	SUB a1 ; Load x1
+	STORE L2X ; Store x2-x1 in L2x
+	
+	LOAD b2 ; Load y2
+	SUB b1 ; Load y1
+	STORE L2Y ; Store y2-y1 in L2Y
+	
+	LOAD L2X
+	JNEG DCYZeroCheck ; Jump to checking if L2Y is zero if L2X != 0
+	JPOS DCYZeroCheck ; Jump to checking if L2Y is zero if L2X != 0
+	LOAD L2Y
+	CALL Abs
+	STORE distValue ; Load L2Y into distValue
+	RETURN ; Return from function with L2Y as answer
+	
+DCYZeroCheck:	LOAD L2Y
+	JNEG DCEstimate ; Call distance estimation if L2Y != 0 (and L2X != 0)
+	JPOS DCEstimate ; Call distance estimation if L2Y != 0 (and L2X != 0)
+	LOAD L2X
+	CALL Abs
+	STORE distValue ; Load L2X into distValue
+	RETURN ; Return from function with L2X as answer
+	
+DCEstimate:	CALL L2Estimate
 	STORE distValue
-	Return
+	RETURN
 
 
 	
@@ -696,7 +735,7 @@ L2T1: DW 0
 L2T2: DW 0
 L2T3: DW 0
 
-NumDestinations: DW 5
+NumDestinations: DW 6
 
 ;*******************************************
 ;* FillAdjMatrix:
@@ -710,6 +749,8 @@ FAMCheckI: LOAD FAMi ; Checking if outer loop conditions are true or not (whethe
 	SUB NumDestinations
 	JPOS FAMEndI ; Jump to end of outer loop
 	JZero FAMEndI ; Jump to end of outer loop
+	LOADI 0
+	STORE FAMj ; Reset j to 0 once at top of outer loop
 
 FAMCheckJ: LOAD FAMj
 	SUB NumDestinations
@@ -718,7 +759,7 @@ FAMCheckJ: LOAD FAMj
 
 	; Begin Calculations	
 
-	LOAD Three
+	LOADI 3
 	STORE m16sA ; Load 3 into m16sA
 	LOAD FAMi
 	STORE m16sB ; Load i into m16sB
@@ -728,6 +769,7 @@ FAMCheckJ: LOAD FAMj
 	STORE Ptr
 	ILOAD Ptr ; Get x position for Point 1 and place in AC
 	STORE a1 ; Store x position for Point 1 in a1
+	OUT SSEG1
 	LOAD Ptr 
 	ADDI 1 ; Get y position pointer for Point 1 and place in AC
 	STORE Ptr
@@ -742,13 +784,14 @@ FAMCheckJ: LOAD FAMj
 	STORE Ptr
 	ILOAD Ptr ; Get x position for Point 2 and place in AC
 	STORE a2 ; Store x position pointer for Point 2 in a2
+	OUT SSEG2
 	LOAD Ptr 
 	ADDI 1 ; Get y position pointer for Point 2 and place in AC
 	STORE Ptr
 	ILOAD Ptr ; Get y position for Point 2 and place in AC
 	STORE b2 ; Store y position for Point 2 in b1
 	
-	LOAD NumDestinations 
+	LOAD NumDestinations
 	STORE m16sA ; Load NumDestinations into m16sA
 	LOAD FAMi
 	STORE m16sB ; Load i into m16sB
@@ -760,9 +803,15 @@ FAMCheckJ: LOAD FAMj
 	LOADI AdjMatrixDist ; Get base pointer to AdjMatrixDist
 	ADD Temp ; Get proper index pointer to write to in AdjMatrixDist
 	STORE Ptr ; Store AdjMatrixDist pointer in Ptr
-	LOAD distValue ; Load distance between two points into AC
 	OUT LCD
-	CALL Wait1
+	LOAD distValue ; Load distance between two points into AC
+	;OUT SSEG1
+	;CALL Wait1
+	;CALL Wait1
+	;LOADI &HBEEF
+	;OUT SSEG1
+	;CALL Wait1
+	;LOAD distValue
 	ISTORE Ptr ; Write distance to AdjMatrixDist array
 	CALL DegCalc ; Calculate angle between two points
 	LOADI AdjMatrixAng ; Get base pointer to AdjMatrixAng
@@ -786,6 +835,7 @@ FAMEndJ: LOAD FAMi
 FAMEndI: RETURN
 
 
+
 ;*******************************************
 ;* CreateRoute
 ;*
@@ -793,48 +843,54 @@ FAMEndI: RETURN
 ;*******************************************
 CreateRoute:
 closestIdx: DW -1
-closestDist: DW &HFFFF
+closestDist: DW 50000
 CRi: DW 0
 CRj: DW 0
 currDest: DW 0 ; 0 as we will start at Destination 0 (origin)
-visitedSet: DW 1 ; 1 as we will consider [0, 0] already visited
+visitedSet: DW 1
 
 CRCheckI: LOAD CRi
 	SUB NumDestinations
-	ADDI -1
+	ADDI 1
 	JPOS CREndI
-	JZero CREndI
+	JZERO CREndI
 	
-	LOAD HighWord
+	LOADI 50000
 	STORE closestDist
+	
+	LOADI 0
+	STORE CRj
 
 CRCheckJ: LOAD CRj
 	SUB NumDestinations
 	JPOS CREndJ
-	JZero CREndJ
+	JZERO CREndJ
 	
 	; Start Calculations
 	
 	LOAD CRj
     SUB currDest
-    JZERO IfCheckEnd ; (if j != currDest) then skip to IfCheckEnd
-    LOADI 13
+    JZERO IfCheckEnd ; (if j == currDest) then skip to IfCheckEnd
+    LOAD NumDestinations
     STORE m16sA
     LOAD currDest
     STORE m16sB
-    CALL Mult16s ; Multiply 13*currDest
+    CALL Mult16s ; Multiply NumDestinations*currDest
+    LOAD mres16sL
+    ADD CRj		; Get pointer offset for Adj[currDest][j]
+    STORE Temp  ; Store pointer offset in Temp
     LOADI AdjMatrixDist
-    ADD mres16sL
-    ADD CRj ; Get pointer for Adj[currDest][j]
+    ADD Temp
     STORE Ptr ; Store pointer for Adj[currDest][j] in Ptr
-    ILOAD Ptr
+    ILOAD Ptr ; Load value of Adj[currDest][j] into AC
     SUB closestDist
     JPOS IfCheckEnd ; Branch to IfCheckEnd if (Adj[currDestination][j] >= closest)]
-    JZero IfCheckEnd ; Branch to IfCheckEnd if (Adj[currDestination][j] >= closest)]
+    JZERO IfCheckEnd ; Branch to IfCheckEnd if (Adj[currDestination][j] >= closest)]
     
-    ; Continue working on from visitedSet & (1 << j) == 0
-    LOADI Mask0
-    ADD CRj
+    LOADI Mask0 ; Load pointer to Mask0
+    ADD CRj ; Add j to get pointer for mask shifted left by j bits
+    STORE Temp ; Store pointer for mask in Temp
+    ILOAD Temp ; Load mask (1 << j)
     AND visitedSet
     JNEG IfCheckEnd ; Branch to IfCheckEnd if (visistedSet & (1 << j) != 0)
     JPOS IfCheckEnd ; Branch to IfCheckEnd if (visitedSet & (1 << j) != 0)
@@ -848,7 +904,6 @@ CRCheckJ: LOAD CRj
     LOAD closestIdx ; Load closestIdx in AC
     ISTORE Ptr ; Load closestIdx into SortedDestArray[i]
     
-    
 IfCheckEnd: NOP 
     ; End Calculations
     
@@ -857,8 +912,10 @@ IfCheckEnd: NOP
     STORE CRj
     JUMP CRCheckJ
     
-CREndJ: LOADI Mask0 ; Load mask for 0b000000001
-	ADD closestIdx ; Shift left by closestIdx bits
+CREndJ: LOADI Mask0 ; Load pointer to mask for 0b000000001
+	ADD closestIdx ; Shift left by adding closestIdx
+	STORE Temp
+	ILOAD Temp ; Load mask (1 << closestIdx)
 	OR visitedSet ; OR by visitedSet
 	STORE visitedSet ; Store visited set by result in AC
 	LOAD closestIdx ; Load closestIdx
@@ -1033,25 +1090,26 @@ InitDestArray: DW &H00 ; Dest0 X
 DW  &H00 ; Dest0 Y 
 DW  0 ; Dest0 #
 
-DW  &H01 ; Dest1 X
-DW  &H00; Dest1 Y
+DW  &H08 ; Dest1 X
+DW  &H05; Dest1 Y
 DW  1 ; Dest1 #
 
-DW  &H02 ; Dest2 X
-DW  &H00; Dest2 Y
+DW  &H03 ; Dest2 X
+DW  &H09; Dest2 Y
 DW  2 ; Dest2 #
 
-DW  &H03 ; Dest3 X
+DW  &H02 ; Dest3 X
 DW  &H00 ; Dest3 Y
 DW  3 ; Dest3 #
 
-DW  &H04 ; Dest4 X
-DW  &H00 ; Dest4 Y
+DW  &H05 ; Dest4 X
+DW  &H03 ; Dest4 Y
 DW  4 ; Dest4 #
 
-DW  0
-DW  0
-DW  0
+DW  -1 ; Dest5 X
+DW  -1 ; Dest5 Y
+DW  5 ; Dest5 #
+
 DW  0
 DW  0
 DW  0
