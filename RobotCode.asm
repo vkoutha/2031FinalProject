@@ -1627,4 +1627,86 @@ DW  166
 DW  167
 DW  168
 	  
+;***************************************************************
+;* LCD Display (DE##)
+;***************************************************************
 
+HZero:	  DW &HDE00	   
+HOne:	  DW &HDE01
+HTwo:	  DW &HDE02
+HThree:	  DW &HDE03
+HFour:	  DW &HDE04
+HFive:	  DW &HDE05
+HSix:	  DW &HDE06
+HSeven:	  DW &HDE07
+HEight:	  DW &HDE08
+HNine:	  DW &HDE09
+HTen:	  DW &HDE10
+HEleven:  DW &HDE11
+HTwelve:  DW &HDE12
+
+
+LoadDE00:
+	LOAD HZero
+	OUT  LCD
+	RETURN
+	
+LoadDE01:
+	LOAD HOne
+	OUT  LCD
+	RETURN
+	
+LoadDE02:
+	LOAD HTwo
+	OUT  LCD
+	RETURN
+	
+LoadDE03:
+	LOAD HThree
+	OUT  LCD
+	RETURN
+	
+LoadDE04:
+	LOAD HFour
+	OUT  LCD
+	RETURN
+	
+LoadDE05:
+	LOAD HFive
+	OUT  LCD
+	RETURN
+	
+LoadDE06:
+	LOAD HSix
+	OUT  LCD
+	RETURN
+	
+LoadDE07:
+	LOAD HSeven
+	OUT  LCD
+	RETURN
+	
+LoadDE08:
+	LOAD HEight
+	OUT  LCD
+	RETURN
+	
+LoadDE09:
+	LOAD HNine
+	OUT  LCD
+	RETURN
+	
+LoadDE10:
+	LOAD HTen
+	OUT  LCD
+	RETURN
+	
+LoadDE11:
+	LOAD HEleven
+	OUT  LCD
+	RETURN
+	
+LoadDE12:
+	LOAD HTwelve
+	OUT  LCD
+	RETURN
