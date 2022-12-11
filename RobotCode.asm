@@ -208,6 +208,7 @@ MoveDistance:
 	ConvertedUnits: DW 0
 	LOAD distValue
 	CALL InchesToRobotUnits ; Convert MoveDistanceAMT from inches to robot units
+	SUB CustomFwdOffset
 	STORE ConvertedUnits ; Store the target distance (robot units) in ConvertedUnits field
 MoveDistanceSetSpeed:
 	LOAD ConvertedUnits
@@ -244,6 +245,7 @@ TDNegAngle:
 	IN Theta
 	SUB Deg360
 	SUB degValue
+	SUB CustomDegOffset
 	JPOS TurnDegrees
 	JUMP TDStop
 TDCompare: 
@@ -253,6 +255,7 @@ TDCompare:
 	JZERO TurnDegrees
 	IN Theta
 	SUB degValue
+	ADD CustomDegOffset
 	JNEG TurnDegrees
 TDStop: 
 	LOAD Zero
@@ -1140,6 +1143,18 @@ FMid:     DW 350       ; 350 is a medium speed
 RMid:     DW -350
 FFast:    DW 500       ; 500 is almost max speed (511 is max)
 RFast:    DW -500
+
+SlowFwdOffset: DW 9 ; Robot units
+SlowDegOffset: DW 5
+
+MidFwdOffset: DW 119 ; Robot units
+MidDegOfset: DW 60
+
+FastFwdOffset: DW 244 ; Robot units
+FastDegOffset: DW 123
+
+CustomFwdOffset: DW 119 ; Robot units (Vel^2 / 1024)
+CustomDegOffset: DW 60 ; Robot units (Vel^2 / 2030)
 
 MinBatt:  DW 110       ; 13.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
