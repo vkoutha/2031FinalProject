@@ -81,7 +81,6 @@ MTL: LOAD Mi
 	CALL Wait1
 	LOADI SortedDestArray 
 	ADD Mi
-	OUT LCD
 	STORE Ptr ; Get pointer to SortedDestArray
 	ILOAD Ptr ; Load value in pointer
 	OUT SSEG1 ; Display on screen
@@ -98,7 +97,7 @@ MEnd: CALL Die
 ; Goes through the entire SortedDestArray and moves from each destination to the next destination, until the end
 ; Relies on MoveDestToDest Subroutine
 ; ********************************************************
-RunRoute: NOP
+RunRoute: CALL LoadDE00
 
 RRi: DW 0
 
@@ -107,13 +106,13 @@ RRTL: LOAD RRi
 	ADDI 1
 	JPOS RREnd	; Top of for loop checking conditions
 	JZERO RREnd ; Top of for loop checking conditions
-		
+	
 	LOADI SortedDestArray ; Get Sorted Array
 	ADD RRi ; Get destination to visit pointer
 	STORE Ptr
 	ILOAD Ptr ; Load destination number from pointer
 	STORE Dest2Num ; Store destination number in Dest2Num
-	;OUT SSEG1
+	OUT SSEG1
 	
 	CALL MoveDestToDest ; Move from Dest1Num (current position) to Dest2Num
 	
@@ -126,8 +125,6 @@ RRTL: LOAD RRi
 	JUMP RRTL ; Jump back to top of loop
 	
 RREnd: RETURN
-
-
 
 Dest1Num: DW 0
 Dest2Num: DW 0
@@ -179,12 +176,14 @@ MoveDestToDest:
 	; Turn by Target Angle - Prev Angle
 	CALL DegCalc
 	LOAD degValue ; Load the degrees we want to turn by (relative to x-axis)
-	OUT SSEG1
 	STORE Temp ; Save in temporary variable
+	JZERO MTAF
 	SUB TDPrevAngle ; Subtract by our current heading (amount we previously turned by)
+	CALL ConvertAngle ; Convert angle to range [-180, 180]
+	OUT SSEG2
 	STORE degValue ; Store in degValue
 	CALL TurnDegrees ; Turn to Point 2
-	LOAD Temp ; Load degrees we wanted to turn by that was stored in Temp
+MTAF: LOAD Temp ; Load degrees we wanted to turn by that was stored in Temp
 	STORE TDPrevAngle ; Store target degrees (not including the TDPrevAngle) in TDPrevAngle
 	
 	OUT RESETPOS ; Reset odometry XY position and Theta
@@ -196,7 +195,34 @@ MoveDestToDest:
 	;;;;;;;;
 	CALL WaitMin
 	CALL MoveDistance ; Move to Point 2
+	CALL WaitMin
 	
+	CALL LoadDENum
+	
+	RETURN
+	
+;/*******************************************************************
+; ConvertAngle Subroutine
+; Takes the angle (in degrees) in the AC and converts it into the range [-180, 180]
+; Stores the resulting value in the AC
+;/*******************************************************************
+ConvertAngle:
+CATmp: DW 0
+	STORE CATmp ; Store degree value in AC in CATmp
+	JNEG CANegHandle
+	ADDI -180
+	JNEG CAEnd ; Check if angle is in range [0, 180] --- If so, do nothing to angle
+	LOAD CATmp
+	ADDI -360 ; If angle is in range (180, 359], subtract 360 to convert it to range [-180, 0)
+	STORE CATmp ; Store value in CATmp
+	JUMP CAEnd
+CANegHandle:
+	ADDI 180
+	JPOS CAEnd
+	LOAD CATmp
+	ADDI 360
+	STORE CATmp
+CAEnd: LOAD CATmp ; Load converted value
 	RETURN
 
 ;/******************************************************************
@@ -320,7 +346,7 @@ WMinloop:
 	OUT    SSEG2
 	IN     TIMER
 	OUT    XLEDS       ; User-feedback that a pause is occurring.
-	ADDI   -5         ; .5 seconds (5Hz)
+	ADDI   -10         ; .5 seconds (5Hz)
 	JNEG   WMinloop
 	RETURN
 
@@ -735,6 +761,9 @@ DegCalc:
 	CALL Atan2
 	STORE degValue
 	
+	;CALL ConvertAngle
+	;STORE degValue
+	
 	LOAD degValue
 	ADDI -180
 	JNEG DeCRet
@@ -897,7 +926,6 @@ FAMCheckJ: LOAD FAMj
 	STORE Ptr
 	ILOAD Ptr ; Get x position for Point 2 and place in AC
 	STORE a2 ; Store x position pointer for Point 2 in a2
-	OUT SSEG2
 	LOAD Ptr 
 	ADDI 1 ; Get y position pointer for Point 2 and place in AC
 	STORE Ptr
@@ -916,15 +944,7 @@ FAMCheckJ: LOAD FAMj
 	LOADI AdjMatrixDist ; Get base pointer to AdjMatrixDist
 	ADD Temp ; Get proper index pointer to write to in AdjMatrixDist
 	STORE Ptr ; Store AdjMatrixDist pointer in Ptr
-	OUT LCD
 	LOAD distValue ; Load distance between two points into AC
-	;OUT SSEG1
-	;CALL Wait1
-	;CALL Wait1
-	;LOADI &HBEEF
-	;OUT SSEG1
-	;CALL Wait1
-	;LOAD distValue
 	ISTORE Ptr ; Write distance to AdjMatrixDist array
 	CALL DegCalc ; Calculate angle between two points
 	LOADI AdjMatrixAng ; Get base pointer to AdjMatrixAng
@@ -1041,7 +1061,22 @@ CREndJ: LOADI Mask0 ; Load pointer to mask for 0b000000001
 	
 CREndI: RETURN
 
+LoadDE00:
+	LOAD HZero
+	OUT  LCD
+	;OUT SSEG1
+	;OUT SSEG2
+	RETURN
 
+LoadDENum:
+	LOADI	HOne
+	ADD		Dest1num
+	STORE	PTR
+	ILOAD	PTR
+	OUT 	LCD
+	;OUT SSEG1
+	;OUT SSEG2
+	RETURN
 
 ;***************************************************************
 ;* Variables
@@ -1154,7 +1189,7 @@ FastFwdOffset: DW 244 ; Robot units
 FastDegOffset: DW 123
 
 CustomFwdOffset: DW 119 ; Robot units (Vel^2 / 1024)
-CustomDegOffset: DW 60 ; Robot units (Vel^2 / 2030)
+CustomDegOffset: DW 5 ; Robot units (Vel^2 / 2030)
 
 MinBatt:  DW 110       ; 13.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
@@ -1203,7 +1238,7 @@ RESETPOS: EQU &HC3  ; write anything here to reset odometry to 0
 RIN:      EQU &HC8
 LIN:      EQU &HC9
 
-NumDestinations: DW 4
+NumDestinations: DW 13
 ;***************************************************************
 ;* Array to hold the initial given destinations locations and destination number
 ;  3 words are reserved for each destination
@@ -1216,53 +1251,53 @@ InitDestArray: DW 0 ; Dest0 X (Origin)
 DW  0 ; Dest0 Y (Origin)
 DW  0 	; Dest0 # (Origin)
 
-DW  24 	; Dest1 X
+DW  36 	; Dest1 X
 DW  0 	; Dest1 Y
 DW  1 	; Dest1 #
 
-DW  24 	; Dest2 X
-DW  24	; Dest2 Y
+DW  0 	; Dest2 X
+DW  60	; Dest2 Y
 DW  2 	; Dest2 #
 
-DW  36 	; Dest3 X
-DW  24 ; Dest3 Y
+DW  -36 ; Dest3 X
+DW  0 	; Dest3 Y
 DW  3 	; Dest3 #
 
-DW  24 	; Dest4 X
-DW  0 	; Dest4 Y
+DW  0 	; Dest4 X
+DW  -54 ; Dest4 Y
 DW  4 	; Dest4 #
 
-DW  30 	; Dest5 X
-DW  0 	; Dest5 Y
+DW  24 	; Dest5 X
+DW 	36 	; Dest5 Y
 DW  5 	; Dest5 #
 
-DW  0	; Dest6 X
-DW  0	; Dest6 Y
-DW  0	; Dest6 #
+DW  -12	; Dest6 X
+DW  12	; Dest6 Y
+DW  6	; Dest6 #
 
-DW  0 	; Dest7 X
-DW  0	; Dest7 Y
-DW  0	; Dest7 #
+DW  -48 ; Dest7 X
+DW  -60	; Dest7 Y
+DW  7	; Dest7 #
 
-DW  0	; Dest8 X
-DW  0	; Dest8 Y
-DW  0	; Dest8 #
+DW  -36	; Dest8 X
+DW  12	; Dest8 Y
+DW  8	; Dest8 #
 
-DW  0	; Dest9 X
-DW  0	; Dest9 Y
-DW  0	; Dest9 #
+DW  48	; Dest9 X
+DW  -60	; Dest9 Y
+DW  9	; Dest9 #
 
-DW  0	; Dest10 X
-DW  0	; Dest10 Y
-DW  0	; Dest10 #
+DW  48	; Dest10 X
+DW  -24	; Dest10 Y
+DW  10	; Dest10 #
 
-DW  0	; Dest11 X
-DW  0	; Dest11 Y
-DW  0	; Dest11 #
+DW  48	; Dest11 X
+DW  60	; Dest11 Y
+DW  11	; Dest11 #
 
-DW  0	; Dest12 X
-DW  0	; Dest12 Y
-DW  0	; Dest12 #
+DW  -48	; Dest12 X
+DW  60	; Dest12 Y
+DW  12	; Dest12 #
 
 ;***************************************************************
 ;* Array for final destinations, which holds the order of destinations to go to after Greedy Algorithm has been executed
@@ -1626,5 +1661,18 @@ DW  165
 DW  166
 DW  167
 DW  168
-	  
+
+HZero:	  DW &HDE00	   
+HOne:	  DW &HDE01
+HTwo:	  DW &HDE02
+HThree:	  DW &HDE03
+HFour:	  DW &HDE04
+HFive:	  DW &HDE05
+HSix:	  DW &HDE06
+HSeven:	  DW &HDE07
+HEight:	  DW &HDE08
+HNine:	  DW &HDE09
+HTen:	  DW &HDE10
+HEleven:  DW &HDE11
+HTwelve:  DW &HDE12
 
